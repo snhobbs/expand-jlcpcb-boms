@@ -1,11 +1,14 @@
 JLCBOM=${1}
 DESIGNBOM=${2}
-PSEUDONYMS='{"Value": ["Comment"], "References": ["Designator"]}'
-DATABASE="~/tools/kicad-jlcpcb-tools/jlcpcb/parts.db"
+DATABASE=${3}
+DESIGNBOM_BASE=${DESIGNBOM%.*}
+JLCBOM_BASE=${JLCBOM%.*}
+PSEUDONYMS='{"Value": ["Comment"], "References": ["Designator"], "LCSC Part": ["JLCPCB Part"]}'
+#DATABASE="~/tools/kicad-jlcpcb-tools/jlcpcb/parts.db"
 
 # Uncluster from ref des
-spreadsheet_wrangler.py uncluster --column="References" -p "${PSEUDONYMS}" -s ${JLCBOM}.csv -o ${JLCBOM}_Unclustered.xlsx
-spreadsheet_wrangler.py uncluster --column="References" -p "${PSEUDONYMS}" -s ${DESIGNBOM}.csv -o ${DESIGNBOM}_Unclustered.xlsx
+spreadsheet_wrangler.py uncluster --column="References" -p "${PSEUDONYMS}" -s ${JLCBOM} -o ${JLCBOM_BASE}_Unclustered.xlsx
+spreadsheet_wrangler.py uncluster --column="References" -p "${PSEUDONYMS}" -s ${DESIGNBOM} -o ${DESIGNBOM_BASE}_Unclustered.xlsx
 
 # Same Ref Des Delmiters
 #spreadsheet_wrangler.py delimiter --column="References" -p "${PSEUDONYMS}" -n ' ' -d ',' -i ${JLCBOM}.csv -o ${JLCBOM}.xlsx
@@ -15,8 +18,8 @@ spreadsheet_wrangler.py uncluster --column="References" -p "${PSEUDONYMS}" -s ${
 #mv ${JLCBOM}A.xlsx ${JLCBOM}.xlsx
 
 # Expand BOM
-jlc_part_lookup.py --database ${DATABASE} --bom ${JLCBOM}_Unclustered.xlsx -o ${JLCBOM}_Unclustered_Expanded.xlsx
+jlc_part_lookup.py --database ${DATABASE} --bom ${JLCBOM_BASE}_Unclustered.xlsx -o ${JLCBOM_BASE}_Unclustered_Expanded.xlsx
 
 # Merge
-spreadsheet_wrangler.py merge --on="References" -p "${PSEUDONYMS}" -r ${DESIGNBOM}_Unclustered.xlsx -l ${JLCBOM}_Unclustered_Expanded.xlsx --method outer -o Merged.xlsx
+spreadsheet_wrangler.py merge --on="References" -p "${PSEUDONYMS}" -r ${DESIGNBOM_BASE}_Unclustered.xlsx -l ${JLCBOM_BASE}_Unclustered_Expanded.xlsx --method outer -o Merged.xlsx
 

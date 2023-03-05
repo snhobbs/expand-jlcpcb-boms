@@ -5,8 +5,15 @@ import sqlite3
 import os
 from spreadsheet_wrangler import read_file_to_df, read_pseodonyms, extract_columns_by_pseudonyms
 
-ordering = ("Manufacturer", "Package", "MFR.Part", "Solder Joint", "Description")
+ordering = ("Package", "Manufacturer", "MFR.Part", "Solder Joint", "Description")
 
+schema = {
+    "parts": [],
+    "mapping": ['footprint', 'value', 'LCSC'],
+    "meta": ['filename', 'size', 'partcount', 'date', 'last_update'],
+    "rotation": ['regex', 'correction'],
+    "parts": ['LCSC Part', 'First Category', 'Second Category', 'MFR.Part', 'Package', 'Solder Joint', 'Manufacturer', 'Library Type', 'Description', 'Datasheet', 'Price', 'Stock']
+}
 
 def expand_bom_from_db(database, bom, pseudonyms):
     bom = os.path.realpath(bom)
@@ -32,8 +39,8 @@ def expand_bom_from_db(database, bom, pseudonyms):
     print(selection)
     for _, line in df.iterrows():
         join_value = line[join_column]
-        command = f"select {selection} from parts where \"{join_column}\"=\"{join_value}\""
-        print(command)
+        table = get_table(join_column)
+        command = f"select {selection} from {table} where \"{join_column}\"=\"{join_value}\""
         data_read = list(db.execute(command))
         if data_read:
             data = data_read[0]
